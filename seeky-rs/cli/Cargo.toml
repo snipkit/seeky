@@ -1,5 +1,5 @@
 [package]
-name = "seeky-cli"
+name = "seeky"
 version = { workspace = true }
 edition = "2024"
 

@@ -20,7 +20,7 @@
 #   - aarch64-unknown-linux-gnu
 #
 # NOTE: This script is intended to be run from the repository root via
-#       `pnpm --filter seeky-cli stage-release ...` or inside seeky-cli with the
+#       `pnpm --filter seeky stage-release ...` or inside seeky with the
 #       helper script entry in package.json (`pnpm stage-release ...`).
 # -----------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ TMPDIR="$(cd "$TMPDIR" && pwd)"
 
 echo "Staging release in $TMPDIR"
 
-# The script lives in seeky-cli/scripts/ - change into seeky-cli root so that
+# The script lives in seeky/scripts/ - change into seeky root so that
 # relative paths keep working.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SEEKY_CLI_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

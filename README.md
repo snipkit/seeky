@@ -196,7 +196,7 @@ The hardening mechanism Seeky uses depends on your OS:
   container image** and mounts your repo _read/write_ at the same path. A
   custom `iptables`/`ipset` firewall script denies all egress except the
   OpenAI API. This gives you deterministic, reproducible runs without needing
-  root on the host. You can use the [`run_in_container.sh`](./seeky-cli/scripts/run_in_container.sh) script to set up the sandbox.
+  root on the host. You can use the [`run_in_container.sh`](./seeky/scripts/run_in_container.sh) script to set up the sandbox.
 
 ---
 
@@ -264,7 +264,7 @@ DEBUG=true seeky
 
 ## Recipes
 
-Below are a few bite-size examples you can copy-paste. Replace the text in quotes with your own task. See the [prompting guide](https://github.com/khulnasoft/seeky/blob/main/seeky-cli/examples/prompting_guide.md) for more tips and usage patterns.
+Below are a few bite-size examples you can copy-paste. Replace the text in quotes with your own task. See the [prompting guide](https://github.com/khulnasoft/seeky/blob/main/seeky/examples/prompting_guide.md) for more tips and usage patterns.
 
 | ✨  | What you type                                                                   | What happens                                                               |
 | --- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -301,7 +301,7 @@ pnpm add -g seeky
 ```bash
 # Clone the repository and navigate to the CLI package
 git clone https://github.com/khulnasoft/seeky.git
-cd seeky/seeky-cli
+cd seeky/seeky
 
 # Enable corepack
 corepack enable
@@ -560,7 +560,7 @@ This project uses [Husky](https://typicode.github.io/husky/) to enforce code qua
 - **Pre-commit hook**: Automatically runs lint-staged to format and lint files before committing
 - **Pre-push hook**: Runs tests and type checking before pushing to the remote
 
-These hooks help maintain code quality and prevent pushing code with failing tests. For more details, see [HUSKY.md](./seeky-cli/HUSKY.md).
+These hooks help maintain code quality and prevent pushing code with failing tests. For more details, see [HUSKY.md](./seeky/HUSKY.md).
 
 ```bash
 pnpm test && pnpm run lint && pnpm run typecheck
@@ -588,7 +588,7 @@ pnpm format:fix
 
 ### Debugging
 
-To debug the CLI with a visual debugger, do the following in the `seeky-cli` folder:
+To debug the CLI with a visual debugger, do the following in the `seeky` folder:
 
 - Run `pnpm run build` to build the CLI, which will generate `cli.js.map` alongside `cli.js` in the `dist` folder.
 - Run the CLI with `node --inspect-brk ./dist/cli.js` The program then waits until a debugger is attached before proceeding. Options:
@@ -653,8 +653,8 @@ The **DCO check** blocks merges until every commit in the PR carries the footer 
 ### Releasing `seeky`
 
 To publish a new version of the CLI you first need to stage the npm package. A
-helper script in `seeky-cli/scripts/` does all the heavy lifting. Inside the
-`seeky-cli` folder run:
+helper script in `seeky/scripts/` does all the heavy lifting. Inside the
+`seeky` folder run:
 
 ```bash
 # Classic, JS implementation that includes small, native binaries for Linux sandboxing.
@@ -686,7 +686,7 @@ Enter a Nix development shell:
 
 ```bash
 # Use either one of the commands according to which implementation you want to work with
-nix develop .#seeky-cli # For entering seeky-cli specific shell
+nix develop .#seeky # For entering seeky specific shell
 nix develop .#seeky-rs # For entering seeky-rs specific shell
 ```
 
@@ -696,7 +696,7 @@ Build and run the CLI directly:
 
 ```bash
 # Use either one of the commands according to which implementation you want to work with
-nix build .#seeky-cli # For building seeky-cli
+nix build .#seeky # For building seeky
 nix build .#seeky-rs # For building seeky-rs
 ./result/bin/seeky --help
 ```
@@ -705,7 +705,7 @@ Run the CLI via the flake app:
 
 ```bash
 # Use either one of the commands according to which implementation you want to work with
-nix run .#seeky-cli # For running seeky-cli
+nix run .#seeky # For running seeky
 nix run .#seeky-rs # For running seeky-rs
 ```
 
@@ -715,8 +715,8 @@ If you have direnv installed, you can use the following `.envrc` to automaticall
 
 ```bash
 cd seeky-rs
-echo "use flake ../flake.nix#seeky-cli" >> .envrc && direnv allow
-cd seeky-cli
+echo "use flake ../flake.nix#seeky" >> .envrc && direnv allow
+cd seeky
 echo "use flake ../flake.nix#seeky-rs" >> .envrc && direnv allow
 ```
 

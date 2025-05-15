@@ -44,7 +44,7 @@
     "**/*.{js,ts,tsx}": [
       "prettier --write",
       "pnpm --filter seeky run lint",
-      "cd seeky-cli && pnpm run typecheck"
+      "cd seeky && pnpm run typecheck"
     ]
   },
   "packageManager": "pnpm@10.8.1"

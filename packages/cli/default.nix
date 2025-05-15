@@ -4,7 +4,7 @@ let
 in
 rec {
   package = pkgs.buildNpmPackage {
-    pname       = "seeky-cli";
+    pname       = "seeky";
     version     = "0.1.0";
     src         = ./.;
     npmDepsHash = "sha256-3tAalmh50I0fhhd7XreM+jvl0n4zcRhqygFNB1Olst8";
@@ -17,14 +17,14 @@ rec {
     };
   };
   devShell = pkgs.mkShell {
-    name        = "seeky-cli-dev";
+    name        = "seeky-dev";
     buildInputs = monorep-deps ++ [
       node
       pkgs.pnpm
     ];
     shellHook = ''
-      echo "Entering development shell for seeky-cli"
-      # cd seeky-cli
+      echo "Entering development shell for seeky"
+      # cd seeky
       if [ -f package-lock.json ]; then
         pnpm ci || echo "npm ci failed"
       else

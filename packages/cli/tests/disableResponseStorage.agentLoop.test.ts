@@ -1,5 +1,5 @@
 /**
- * seeky-cli/tests/disableResponseStorage.agentLoop.test.ts
+ * seeky/tests/disableResponseStorage.agentLoop.test.ts
  *
  * Verifies AgentLoop's request-building logic for both values of
  * disableResponseStorage.

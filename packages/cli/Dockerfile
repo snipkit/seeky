@@ -42,9 +42,9 @@ ENV PATH=$PATH:/usr/local/share/npm-global/bin
 COPY dist/seeky.tgz seeky.tgz
 RUN npm install -g seeky.tgz \
   && npm cache clean --force \
-  && rm -rf /usr/local/share/npm-global/lib/node_modules/seeky-cli/node_modules/.cache \
-  && rm -rf /usr/local/share/npm-global/lib/node_modules/seeky-cli/tests \
-  && rm -rf /usr/local/share/npm-global/lib/node_modules/seeky-cli/docs
+  && rm -rf /usr/local/share/npm-global/lib/node_modules/seeky/node_modules/.cache \
+  && rm -rf /usr/local/share/npm-global/lib/node_modules/seeky/tests \
+  && rm -rf /usr/local/share/npm-global/lib/node_modules/seeky/docs
 
 # Inside the container we consider the environment already sufficiently locked
 # down, therefore instruct Seeky CLI to allow running without sandboxing.

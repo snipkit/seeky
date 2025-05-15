@@ -37,7 +37,7 @@ import meow from "meow";
 import path from "path";
 import React from "react";
 
-// Call this early so `tail -F "$TMPDIR/oai-seeky/seeky-cli-latest.log"` works
+// Call this early so `tail -F "$TMPDIR/oai-seeky/seeky-latest.log"` works
 // immediately. This must be run with DEBUG=1 for logging to work.
 initLogger();
 

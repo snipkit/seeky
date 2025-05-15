@@ -71,11 +71,11 @@ function now() {
 let logger: Logger;
 
 /**
- * Creates a .log file for this session, but also symlinks seeky-cli-latest.log
+ * Creates a .log file for this session, but also symlinks seeky-latest.log
  * to the current log file so you can reliably run:
  *
- * - Mac/Windows: `tail -F "$TMPDIR/oai-seeky/seeky-cli-latest.log"`
- * - Linux: `tail -F ~/.local/oai-seeky/seeky-cli-latest.log`
+ * - Mac/Windows: `tail -F "$TMPDIR/oai-seeky/seeky-latest.log"`
+ * - Linux: `tail -F ~/.local/oai-seeky/seeky-latest.log`
  */
 export function initLogger(): Logger {
   if (logger) {
@@ -95,14 +95,14 @@ export function initLogger(): Logger {
       ? path.join(os.tmpdir(), "oai-seeky")
       : path.join(os.homedir(), ".local", "oai-seeky");
   fsSync.mkdirSync(logDir, { recursive: true });
-  const logFile = path.join(logDir, `seeky-cli-${now()}.log`);
+  const logFile = path.join(logDir, `seeky-${now()}.log`);
   // Write the empty string so the file exists and can be tail'd.
   fsSync.writeFileSync(logFile, "");
 
-  // Symlink to seeky-cli-latest.log on UNIX because Windows is funny about
+  // Symlink to seeky-latest.log on UNIX because Windows is funny about
   // symlinks.
   if (!isWin) {
-    const latestLink = path.join(logDir, "seeky-cli-latest.log");
+    const latestLink = path.join(logDir, "seeky-latest.log");
     try {
       fsSync.symlinkSync(logFile, latestLink, "file");
     } catch (err: unknown) {

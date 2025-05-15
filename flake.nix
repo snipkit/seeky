@@ -25,7 +25,7 @@
           pnpm
           husky
         ];
-        seeky-cli = import ./seeky-cli {
+        seeky = import ./seeky {
           inherit pkgs monorepo-deps;
         };
         seeky-rs = import ./seeky-rs {
@@ -35,23 +35,23 @@
       in
       rec {
         packages = {
-          seeky-cli = seeky-cli.package;
+          seeky = seeky.package;
           seeky-rs = seeky-rs.package;
         };
 
         devShells = {
-          seeky-cli = seeky-cli.devShell;
+          seeky = seeky.devShell;
           seeky-rs = seeky-rs.devShell;
         };
 
         apps = {
-          seeky-cli = seeky-cli.app;
+          seeky = seeky.app;
           seeky-rs = seeky-rs.app;
         };
 
-        defaultPackage = packages.seeky-cli;
-        defaultApp = apps.seeky-cli;
-        defaultDevShell = devShells.seeky-cli;
+        defaultPackage = packages.seeky;
+        defaultApp = apps.seeky;
+        defaultDevShell = devShells.seeky;
       }
     );
 }

@@ -1,5 +1,5 @@
 /**
- * seeky/seeky-cli/tests/disableResponseStorage.test.ts
+ * seeky/tests/disableResponseStorage.test.ts
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

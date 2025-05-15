@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Install native runtime dependencies for seeky-cli.
+# Install native runtime dependencies for seeky.
 #
 # By default the script copies the sandbox binaries that are required at
 # runtime. When called with the --full-native flag, it additionally
