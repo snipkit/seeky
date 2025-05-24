@@ -30,7 +30,7 @@ describe("MultilineTextEditor - Shift+Enter (\r variant)", () => {
     // 3. Typing after Shift+Enter adds text to the new line
     // 4. No submission occurs
     const onSubmit = vi.fn();
-    const editorRef = React.useRef<MultilineTextEditorHandle>(null);
+    const editorRef = React.createRef<MultilineTextEditorHandle>();
 
     const { stdin, flush, cleanup } = renderTui(
       React.createElement(MultilineTextEditor, {
