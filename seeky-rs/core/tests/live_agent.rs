@@ -20,13 +20,15 @@
 use std::time::Duration;
 
 use seeky_core::Seeky;
-use seeky_core::config::Config;
 use seeky_core::error::SeekyErr;
 use seeky_core::protocol::AgentMessageEvent;
 use seeky_core::protocol::ErrorEvent;
 use seeky_core::protocol::EventMsg;
 use seeky_core::protocol::InputItem;
 use seeky_core::protocol::Op;
+mod test_support;
+use tempfile::TempDir;
+use test_support::load_default_config_for_test;
 use tokio::sync::Notify;
 use tokio::time::timeout;
 
@@ -57,7 +59,8 @@ async fn spawn_seeky() -> Result<Seeky, SeekyErr> {
         std::env::set_var("OPENAI_STREAM_MAX_RETRIES", "2");
     }
 
-    let config = Config::load_default_config_for_test();
+    let seeky_home = TempDir::new().unwrap();
+    let config = load_default_config_for_test(&seeky_home);
     let (agent, _init_id) = Seeky::spawn(config, std::sync::Arc::new(Notify::new())).await?;
 
     Ok(agent)
@@ -95,7 +98,7 @@ async fn live_streaming_and_prev_id_reset() {
 
         match ev.msg {
             EventMsg::AgentMessage(_) => saw_message_before_complete = true,
-            EventMsg::TaskComplete => break,
+            EventMsg::TaskComplete(_) => break,
             EventMsg::Error(ErrorEvent { message }) => {
                 panic!("agent reported error in task1: {message}")
             }
@@ -133,7 +136,7 @@ async fn live_streaming_and_prev_id_reset() {
             {
                 got_expected = true;
             }
-            EventMsg::TaskComplete => break,
+            EventMsg::TaskComplete(_) => break,
             EventMsg::Error(ErrorEvent { message }) => {
                 panic!("agent reported error in task2: {message}")
             }
@@ -201,7 +204,7 @@ async fn live_shell_function_call() {
                 assert!(stdout.contains(MARKER));
                 saw_end_with_output = true;
             }
-            EventMsg::TaskComplete => break,
+            EventMsg::TaskComplete(_) => break,
             EventMsg::Error(seeky_core::protocol::ErrorEvent { message }) => {
                 panic!("agent error during shell test: {message}")
             }

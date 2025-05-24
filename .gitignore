@@ -14,7 +14,7 @@ out/
 storybook-static/
 
 # ignore README for publishing
-seeky/README.md
+seeky-cli/README.md
 
 # ignore Nix derivation results
 result

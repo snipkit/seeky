@@ -20,6 +20,7 @@ chrono = "0.4.40"
 clap = { version = "4", features = ["derive"] }
 seeky-core = { path = "../core" }
 seeky-common = { path = "../common", features = ["cli", "elapsed"] }
+seeky-linux-sandbox = { path = "../linux-sandbox" }
 mcp-types = { path = "../mcp-types" }
 owo-colors = "4.2.0"
 serde_json = "1"

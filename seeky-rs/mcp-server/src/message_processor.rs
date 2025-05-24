@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::seeky_tool_config::SeekyToolCallParam;
 use crate::seeky_tool_config::create_tool_for_seeky_tool_call_param;
 
@@ -28,15 +30,20 @@ use tokio::task;
 pub(crate) struct MessageProcessor {
     outgoing: mpsc::Sender<JSONRPCMessage>,
     initialized: bool,
+    seeky_linux_sandbox_exe: Option<PathBuf>,
 }
 
 impl MessageProcessor {
     /// Create a new `MessageProcessor`, retaining a handle to the outgoing
     /// `Sender` so handlers can enqueue messages to be written to stdout.
-    pub(crate) fn new(outgoing: mpsc::Sender<JSONRPCMessage>) -> Self {
+    pub(crate) fn new(
+        outgoing: mpsc::Sender<JSONRPCMessage>,
+        seeky_linux_sandbox_exe: Option<PathBuf>,
+    ) -> Self {
         Self {
             outgoing,
             initialized: false,
+            seeky_linux_sandbox_exe,
         }
     }
 
@@ -339,7 +346,7 @@ impl MessageProcessor {
 
         let (initial_prompt, config): (String, SeekyConfig) = match arguments {
             Some(json_val) => match serde_json::from_value::<SeekyToolCallParam>(json_val) {
-                Ok(tool_cfg) => match tool_cfg.into_config() {
+                Ok(tool_cfg) => match tool_cfg.into_config(self.seeky_linux_sandbox_exe.clone()) {
                     Ok(cfg) => cfg,
                     Err(e) => {
                         let result = CallToolResult {

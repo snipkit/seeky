@@ -2,56 +2,26 @@
   "outputs": {
     "seeky-exec": {
       "platforms": {
-        "macos-aarch64": {
-          "regex": "^seeky-exec-aarch64-apple-darwin\\.zst$",
-          "path": "seeky-exec"
-        },
-        "macos-x86_64": {
-          "regex": "^seeky-exec-x86_64-apple-darwin\\.zst$",
-          "path": "seeky-exec"
-        },
-        "linux-x86_64": {
-          "regex": "^seeky-exec-x86_64-unknown-linux-musl\\.zst$",
-          "path": "seeky-exec"
-        },
-        "linux-aarch64": {
-          "regex": "^seeky-exec-aarch64-unknown-linux-gnu\\.zst$",
-          "path": "seeky-exec"
-        }
+        "macos-aarch64":  { "regex": "^seeky-exec-aarch64-apple-darwin\\.zst$",          "path": "seeky-exec" },
+        "macos-x86_64":   { "regex": "^seeky-exec-x86_64-apple-darwin\\.zst$",           "path": "seeky-exec" },
+        "linux-x86_64":   { "regex": "^seeky-exec-x86_64-unknown-linux-musl\\.zst$",     "path": "seeky-exec" },
+        "linux-aarch64":  { "regex": "^seeky-exec-aarch64-unknown-linux-gnu\\.zst$",     "path": "seeky-exec" }
       }
     },
 
     "seeky": {
       "platforms": {
-        "macos-aarch64": {
-          "regex": "^seeky-aarch64-apple-darwin\\.zst$",
-          "path": "seeky"
-        },
-        "macos-x86_64": {
-          "regex": "^seeky-x86_64-apple-darwin\\.zst$",
-          "path": "seeky"
-        },
-        "linux-x86_64": {
-          "regex": "^seeky-x86_64-unknown-linux-musl\\.zst$",
-          "path": "seeky"
-        },
-        "linux-aarch64": {
-          "regex": "^seeky-aarch64-unknown-linux-gnu\\.zst$",
-          "path": "seeky"
-        }
+        "macos-aarch64":  { "regex": "^seeky-aarch64-apple-darwin\\.zst$",          "path": "seeky" },
+        "macos-x86_64":   { "regex": "^seeky-x86_64-apple-darwin\\.zst$",           "path": "seeky" },
+        "linux-x86_64":   { "regex": "^seeky-x86_64-unknown-linux-musl\\.zst$",     "path": "seeky" },
+        "linux-aarch64":  { "regex": "^seeky-aarch64-unknown-linux-gnu\\.zst$",     "path": "seeky" }
       }
     },
 
     "seeky-linux-sandbox": {
       "platforms": {
-        "linux-x86_64": {
-          "regex": "^seeky-linux-sandbox-x86_64-unknown-linux-musl\\.zst$",
-          "path": "seeky-linux-sandbox"
-        },
-        "linux-aarch64": {
-          "regex": "^seeky-linux-sandbox-aarch64-unknown-linux-gnu\\.zst$",
-          "path": "seeky-linux-sandbox"
-        }
+        "linux-x86_64":   { "regex": "^seeky-linux-sandbox-x86_64-unknown-linux-musl\\.zst$",     "path": "seeky-linux-sandbox" },
+        "linux-aarch64":  { "regex": "^seeky-linux-sandbox-aarch64-unknown-linux-gnu\\.zst$",     "path": "seeky-linux-sandbox" }
       }
     }
   }

@@ -45,7 +45,7 @@ jobs:
       # Run all tasks using workspace filters
 
       - name: Check TypeScript code formatting
-        working-directory: seeky
+        working-directory: seeky-cli
         run: pnpm run format
 
       - name: Check Markdown and config file formatting
@@ -69,7 +69,7 @@ jobs:
         run: pnpm run build
 
       - name: Ensure staging a release works.
-        working-directory: seeky
+        working-directory: seeky-cli
         env:
           GH_TOKEN: ${{ github.token }}
         run: pnpm stage-release

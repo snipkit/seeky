@@ -79,7 +79,7 @@ pub fn built_in_model_providers() -> HashMap<String, ModelProviderInfo> {
         (
             "openai",
             P {
-                name: "KhulnaSoft".into(),
+                name: "OpenAI".into(),
                 base_url: "https://api.openai.com/v1".into(),
                 env_key: Some("OPENAI_API_KEY".into()),
                 env_key_instructions: Some("Create an API key (https://platform.openai.com) and export it as an environment variable.".into()),

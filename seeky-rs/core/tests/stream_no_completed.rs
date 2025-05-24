@@ -5,10 +5,13 @@ use std::time::Duration;
 
 use seeky_core::Seeky;
 use seeky_core::ModelProviderInfo;
-use seeky_core::config::Config;
 use seeky_core::exec::SEEKY_SANDBOX_NETWORK_DISABLED_ENV_VAR;
+use seeky_core::protocol::EventMsg;
 use seeky_core::protocol::InputItem;
 use seeky_core::protocol::Op;
+mod test_support;
+use tempfile::TempDir;
+use test_support::load_default_config_for_test;
 use tokio::time::timeout;
 use wiremock::Mock;
 use wiremock::MockServer;
@@ -96,7 +99,8 @@ async fn retries_on_early_close() {
     };
 
     let ctrl_c = std::sync::Arc::new(tokio::sync::Notify::new());
-    let mut config = Config::load_default_config_for_test();
+    let seeky_home = TempDir::new().unwrap();
+    let mut config = load_default_config_for_test(&seeky_home);
     config.model_provider = model_provider;
     let (seeky, _init_id) = Seeky::spawn(config, ctrl_c).await.unwrap();
 
@@ -115,7 +119,7 @@ async fn retries_on_early_close() {
             .await
             .unwrap()
             .unwrap();
-        if matches!(ev.msg, seeky_core::protocol::EventMsg::TaskComplete) {
+        if matches!(ev.msg, EventMsg::TaskComplete(_)) {
             break;
         }
     }

@@ -9,7 +9,7 @@ body:
       value: |
         Thank you for submitting a bug report! It helps make Seeky better for everyone.
 
-        If you need help or support using Seeky, and are not reporting a bug, please post on [seeky/discussions](https://github.com/khulnasoft/seeky/discussions), where you can ask questions or engage with others on ideas for how to improve seeky.
+        If you need help or support using Seeky, and are not reporting a bug, please post on [seeky/discussions](https://github.com/snipkit/seeky/discussions), where you can ask questions or engage with others on ideas for how to improve seeky.
 
         Make sure you are running the [latest](https://npmjs.com/package/seeky) version of Seeky CLI. The bug you are experiencing may already have been fixed.
 

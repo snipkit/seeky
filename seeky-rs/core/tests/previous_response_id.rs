@@ -2,13 +2,15 @@ use std::time::Duration;
 
 use seeky_core::Seeky;
 use seeky_core::ModelProviderInfo;
-use seeky_core::config::Config;
 use seeky_core::exec::SEEKY_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use seeky_core::protocol::ErrorEvent;
 use seeky_core::protocol::EventMsg;
 use seeky_core::protocol::InputItem;
 use seeky_core::protocol::Op;
+mod test_support;
 use serde_json::Value;
+use tempfile::TempDir;
+use test_support::load_default_config_for_test;
 use tokio::time::timeout;
 use wiremock::Match;
 use wiremock::Mock;
@@ -108,7 +110,8 @@ async fn keeps_previous_response_id_between_tasks() {
     };
 
     // Init session
-    let mut config = Config::load_default_config_for_test();
+    let seeky_home = TempDir::new().unwrap();
+    let mut config = load_default_config_for_test(&seeky_home);
     config.model_provider = model_provider;
     let ctrl_c = std::sync::Arc::new(tokio::sync::Notify::new());
     let (seeky, _init_id) = Seeky::spawn(config, ctrl_c.clone()).await.unwrap();
@@ -129,7 +132,7 @@ async fn keeps_previous_response_id_between_tasks() {
             .await
             .unwrap()
             .unwrap();
-        if matches!(ev.msg, EventMsg::TaskComplete) {
+        if matches!(ev.msg, EventMsg::TaskComplete(_)) {
             break;
         }
     }
@@ -151,7 +154,7 @@ async fn keeps_previous_response_id_between_tasks() {
             .unwrap()
             .unwrap();
         match ev.msg {
-            EventMsg::TaskComplete => break,
+            EventMsg::TaskComplete(_) => break,
             EventMsg::Error(ErrorEvent { message }) => {
                 panic!("unexpected error: {message}")
             }

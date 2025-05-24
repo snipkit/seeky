@@ -1,42 +1,42 @@
-{ pkgs, monorep-deps ? [], ... }:
+{ pkgs, monorepo-deps }:
+
 let
-  env = {
-    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig:$PKG_CONFIG_PATH";
-  };
+  rust = pkgs.rustc;
+  cargo = pkgs.cargo;
 in
-rec {
-  package = pkgs.rustPlatform.buildRustPackage {
-    inherit env;
+{
+  package = pkgs.stdenv.mkDerivation {
     pname = "seeky-rs";
     version = "0.1.0";
-    cargoLock.lockFile = ./Cargo.lock;
-    doCheck = false;
     src = ./.;
-    nativeBuildInputs = with pkgs; [
-      pkg-config
-      openssl
-    ];
-    meta = with pkgs.lib; {
-      description = "KhulnaSoft Seeky command‑line interface rust implementation";
-      license = licenses.asl20;
-      homepage = "https://github.com/khulnasoft/seeky";
-    };
+
+    buildInputs = [ rust cargo ] ++ monorepo-deps;
+
+    buildPhase = ''
+      cargo build --release
+    '';
+
+    installPhase = ''
+      mkdir -p $out/bin
+      cp target/release/seeky-rs $out/bin/
+    '';
+
+    # Optional for reproducibility
+    CARGO_HOME = "${pkgs.cargo}";
+    RUST_BACKTRACE = 1;
   };
+
   devShell = pkgs.mkShell {
-    inherit env;
-    name = "seeky-rs-dev";
-    packages = monorep-deps ++ [
-      pkgs.cargo
-      package
-    ];
+    buildInputs = [ rust cargo ] ++ monorepo-deps;
     shellHook = ''
-      echo "Entering development shell for seeky-rs"
-      alias seeky="cd ${package.src}/tui; cargo run; cd -"
-      ${pkgs.rustPlatform.cargoSetupHook}
+      echo "Welcome to seeky-rs dev shell"
     '';
   };
+
   app = {
     type = "app";
-    program = "${package}/bin/seeky";
+    program = "${pkgs.writeShellScript "seeky-rs-wrapper" ''
+      exec ${pkgs.stdenv.mkDerivation { ... }}/bin/seeky-rs
+    ''}";
   };
 }

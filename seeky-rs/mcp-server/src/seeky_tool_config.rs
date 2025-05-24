@@ -144,7 +144,10 @@ pub(crate) fn create_tool_for_seeky_tool_call_param() -> Tool {
 impl SeekyToolCallParam {
     /// Returns the initial user prompt to start the Seeky conversation and the
     /// Config.
-    pub fn into_config(self) -> std::io::Result<(String, seeky_core::config::Config)> {
+    pub fn into_config(
+        self,
+        seeky_linux_sandbox_exe: Option<PathBuf>,
+    ) -> std::io::Result<(String, seeky_core::config::Config)> {
         let Self {
             prompt,
             model,
@@ -167,6 +170,7 @@ impl SeekyToolCallParam {
             sandbox_policy,
             disable_response_storage,
             model_provider: None,
+            seeky_linux_sandbox_exe,
         };
 
         let cfg = seeky_core::config::Config::load_with_overrides(overrides)?;

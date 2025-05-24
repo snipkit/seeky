@@ -1,11 +1,10 @@
 use clap::Parser;
 use seeky_cli::LandlockCommand;
 use seeky_cli::SeatbeltCommand;
-use seeky_cli::create_sandbox_policy;
 use seeky_cli::proto;
-use seeky_cli::seatbelt;
 use seeky_exec::Cli as ExecCli;
 use seeky_tui::Cli as TuiCli;
+use std::path::PathBuf;
 
 use crate::proto::ProtoCli;
 
@@ -62,44 +61,43 @@ enum DebugCommand {
 #[derive(Debug, Parser)]
 struct ReplProto {}
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
+    seeky_linux_sandbox::run_with_sandbox(|seeky_linux_sandbox_exe| async move {
+        cli_main(seeky_linux_sandbox_exe).await?;
+        Ok(())
+    })
+}
+
+async fn cli_main(seeky_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()> {
     let cli = MultitoolCli::parse();
 
     match cli.subcommand {
         None => {
-            seeky_tui::run_main(cli.interactive)?;
+            seeky_tui::run_main(cli.interactive, seeky_linux_sandbox_exe)?;
         }
         Some(Subcommand::Exec(exec_cli)) => {
-            seeky_exec::run_main(exec_cli).await?;
+            seeky_exec::run_main(exec_cli, seeky_linux_sandbox_exe).await?;
         }
         Some(Subcommand::Mcp) => {
-            seeky_mcp_server::run_main().await?;
+            seeky_mcp_server::run_main(seeky_linux_sandbox_exe).await?;
         }
         Some(Subcommand::Proto(proto_cli)) => {
             proto::run_main(proto_cli).await?;
         }
         Some(Subcommand::Debug(debug_args)) => match debug_args.cmd {
-            DebugCommand::Seatbelt(SeatbeltCommand {
-                command,
-                sandbox,
-                full_auto,
-            }) => {
-                let sandbox_policy = create_sandbox_policy(full_auto, sandbox);
-                seatbelt::run_seatbelt(command, sandbox_policy).await?;
+            DebugCommand::Seatbelt(seatbelt_command) => {
+                seeky_cli::debug_sandbox::run_command_under_seatbelt(
+                    seatbelt_command,
+                    seeky_linux_sandbox_exe,
+                )
+                .await?;
             }
-            #[cfg(unix)]
-            DebugCommand::Landlock(LandlockCommand {
-                command,
-                sandbox,
-                full_auto,
-            }) => {
-                let sandbox_policy = create_sandbox_policy(full_auto, sandbox);
-                seeky_cli::landlock::run_landlock(command, sandbox_policy)?;
-            }
-            #[cfg(not(unix))]
-            DebugCommand::Landlock(_) => {
-                anyhow::bail!("Landlock is only supported on Linux.");
+            DebugCommand::Landlock(landlock_command) => {
+                seeky_cli::debug_sandbox::run_command_under_landlock(
+                    landlock_command,
+                    seeky_linux_sandbox_exe,
+                )
+                .await?;
             }
         },
     }

@@ -1,15 +1,11 @@
 [package]
-name = "seeky"
+name = "seeky-cli"
 version = { workspace = true }
 edition = "2024"
 
 [[bin]]
 name = "seeky"
 path = "src/main.rs"
-
-[[bin]]
-name = "seeky-linux-sandbox"
-path = "src/linux-sandbox/main.rs"
 
 [lib]
 name = "seeky_cli"
@@ -24,6 +20,7 @@ clap = { version = "4", features = ["derive"] }
 seeky-core = { path = "../core" }
 seeky-common = { path = "../common", features = ["cli"] }
 seeky-exec = { path = "../exec" }
+seeky-linux-sandbox = { path = "../linux-sandbox" }
 seeky-mcp-server = { path = "../mcp-server" }
 seeky-tui = { path = "../tui" }
 serde_json = "1"

@@ -74,6 +74,9 @@ pub enum SeekyErr {
     #[error("sandbox error: {0}")]
     Sandbox(#[from] SandboxErr),
 
+    #[error("seeky-linux-sandbox was required but not provided")]
+    LandlockSandboxExecutableNotProvided,
+
     // -----------------------------------------------------------------
     // Automatic conversions for common external error types
     // -----------------------------------------------------------------

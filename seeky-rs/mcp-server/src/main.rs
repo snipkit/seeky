@@ -1,7 +1,8 @@
 use seeky_mcp_server::run_main;
 
-#[tokio::main]
-async fn main() -> std::io::Result<()> {
-    run_main().await?;
-    Ok(())
+fn main() -> anyhow::Result<()> {
+    seeky_linux_sandbox::run_with_sandbox(|seeky_linux_sandbox_exe| async move {
+        run_main(seeky_linux_sandbox_exe).await?;
+        Ok(())
+    })
 }

@@ -9,6 +9,7 @@ use seeky_core::protocol::Event;
 use seeky_core::protocol::EventMsg;
 use seeky_core::protocol::InputItem;
 use seeky_core::protocol::Op;
+use seeky_core::protocol::TaskCompleteEvent;
 use mcp_types::CallToolResult;
 use mcp_types::CallToolResultContent;
 use mcp_types::JSONRPC_VERSION;
@@ -125,7 +126,9 @@ pub async fn run_seeky_tool_session(
                             .await;
                         break;
                     }
-                    EventMsg::TaskComplete => {
+                    EventMsg::TaskComplete(TaskCompleteEvent {
+                        last_agent_message: _,
+                    }) => {
                         let result = if let Some(msg) = last_agent_message {
                             CallToolResult {
                                 content: vec![CallToolResultContent::TextContent(TextContent {
@@ -166,7 +169,8 @@ pub async fn run_seeky_tool_session(
                     | EventMsg::ExecCommandEnd(_)
                     | EventMsg::BackgroundEvent(_)
                     | EventMsg::PatchApplyBegin(_)
-                    | EventMsg::PatchApplyEnd(_) => {
+                    | EventMsg::PatchApplyEnd(_)
+                    | EventMsg::GetHistoryEntryResponse(_) => {
                         // For now, we do not do anything extra for these
                         // events. Note that
                         // send(seeky_event_to_notification(&event)) above has

@@ -46,8 +46,8 @@ seeky/
 ├── pnpm-workspace.yaml    # Workspace configuration
 ├── .npmrc                 # pnpm configuration
 ├── package.json           # Root dependencies and scripts
-├── seeky/             # Main package
-│   └── package.json       # seeky specific dependencies
+├── seeky-cli/             # Main package
+│   └── package.json       # seeky-cli specific dependencies
 └── docs/                  # Documentation (future package)
 ```
 

@@ -1,6 +1,11 @@
 use crate::config_profile::ConfigProfile;
+use crate::config_types::History;
+use crate::config_types::McpServerConfig;
+use crate::config_types::ShellEnvironmentPolicy;
+use crate::config_types::ShellEnvironmentPolicyToml;
+use crate::config_types::Tui;
+use crate::config_types::UriBasedFileOpener;
 use crate::flags::OPENAI_DEFAULT_MODEL;
-use crate::mcp_server_config::McpServerConfig;
 use crate::model_provider_info::ModelProviderInfo;
 use crate::model_provider_info::built_in_model_providers;
 use crate::protocol::AskForApproval;
@@ -33,6 +38,8 @@ pub struct Config {
     pub approval_policy: AskForApproval,
 
     pub sandbox_policy: SandboxPolicy,
+
+    pub shell_environment_policy: ShellEnvironmentPolicy,
 
     /// Disable server-side response storage (sends the full conversation
     /// context with every request). Currently necessary for OpenAI customers
@@ -77,6 +84,28 @@ pub struct Config {
 
     /// Maximum number of bytes to include from an AGENTS.md project doc file.
     pub project_doc_max_bytes: usize,
+
+    /// Directory containing all Seeky state (defaults to `~/.seeky` but can be
+    /// overridden by the `SEEKY_HOME` environment variable).
+    pub seeky_home: PathBuf,
+
+    /// Settings that govern if and what will be written to `~/.seeky/history.jsonl`.
+    pub history: History,
+
+    /// Optional URI-based file opener. If set, citations to files in the model
+    /// output will be hyperlinked using the specified URI scheme.
+    pub file_opener: UriBasedFileOpener,
+
+    /// Collection of settings that are specific to the TUI.
+    pub tui: Tui,
+
+    /// Path to the `seeky-linux-sandbox` executable. This must be set if
+    /// [`crate::exec::SandboxType::LinuxSeccomp`] is used. Note that this
+    /// cannot be set in the config file: it must be set in code via
+    /// [`ConfigOverrides`].
+    ///
+    /// When this program is invoked, arg0 will be set to `seeky-linux-sandbox`.
+    pub seeky_linux_sandbox_exe: Option<PathBuf>,
 }
 
 /// Base config deserialized from ~/.seeky/config.toml.
@@ -90,6 +119,9 @@ pub struct ConfigToml {
 
     /// Default approval policy for executing commands.
     pub approval_policy: Option<AskForApproval>,
+
+    #[serde(default)]
+    pub shell_environment_policy: ShellEnvironmentPolicyToml,
 
     // The `default` attribute ensures that the field is treated as `None` when
     // the key is omitted from the TOML. Without it, Serde treats the field as
@@ -126,14 +158,25 @@ pub struct ConfigToml {
     /// Named profiles to facilitate switching between different configurations.
     #[serde(default)]
     pub profiles: HashMap<String, ConfigProfile>,
+
+    /// Settings that govern if and what will be written to `~/.seeky/history.jsonl`.
+    #[serde(default)]
+    pub history: Option<History>,
+
+    /// Optional URI-based file opener. If set, citations to files in the model
+    /// output will be hyperlinked using the specified URI scheme.
+    pub file_opener: Option<UriBasedFileOpener>,
+
+    /// Collection of settings that are specific to the TUI.
+    pub tui: Option<Tui>,
 }
 
 impl ConfigToml {
     /// Attempt to parse the file at `~/.seeky/config.toml`. If it does not
     /// exist, return a default config. Though if it exists and cannot be
     /// parsed, report that to the user and force them to fix it.
-    fn load_from_toml() -> std::io::Result<Self> {
-        let config_toml_path = seeky_dir()?.join("config.toml");
+    fn load_from_toml(seeky_home: &Path) -> std::io::Result<Self> {
+        let config_toml_path = seeky_home.join("config.toml");
         match std::fs::read_to_string(&config_toml_path) {
             Ok(contents) => toml::from_str::<Self>(&contents).map_err(|e| {
                 tracing::error!("Failed to parse config.toml: {e}");
@@ -161,7 +204,7 @@ where
 
     match permissions {
         Some(raw_permissions) => {
-            let base_path = seeky_dir().map_err(serde::de::Error::custom)?;
+            let base_path = find_seeky_home().map_err(serde::de::Error::custom)?;
 
             let converted = raw_permissions
                 .into_iter()
@@ -187,6 +230,7 @@ pub struct ConfigOverrides {
     pub disable_response_storage: Option<bool>,
     pub model_provider: Option<String>,
     pub config_profile: Option<String>,
+    pub seeky_linux_sandbox_exe: Option<PathBuf>,
 }
 
 impl Config {
@@ -194,18 +238,25 @@ impl Config {
     /// ~/.seeky/config.toml, ~/.seeky/instructions.md, embedded defaults, and
     /// any values provided in `overrides` (highest precedence).
     pub fn load_with_overrides(overrides: ConfigOverrides) -> std::io::Result<Self> {
-        let cfg: ConfigToml = ConfigToml::load_from_toml()?;
+        // Resolve the directory that stores Seeky state (e.g. ~/.seeky or the
+        // value of $SEEKY_HOME) so we can embed it into the resulting
+        // `Config` instance.
+        let seeky_home = find_seeky_home()?;
+
+        let cfg: ConfigToml = ConfigToml::load_from_toml(&seeky_home)?;
         tracing::warn!("Config parsed from config.toml: {cfg:?}");
-        let seeky_dir = seeky_dir().ok();
-        Self::load_from_base_config_with_overrides(cfg, overrides, seeky_dir.as_deref())
+
+        Self::load_from_base_config_with_overrides(cfg, overrides, seeky_home)
     }
 
-    fn load_from_base_config_with_overrides(
+    /// Meant to be used exclusively for tests: `load_with_overrides()` should
+    /// be used in all other cases.
+    pub fn load_from_base_config_with_overrides(
         cfg: ConfigToml,
         overrides: ConfigOverrides,
-        seeky_dir: Option<&Path>,
+        seeky_home: PathBuf,
     ) -> std::io::Result<Self> {
-        let instructions = Self::load_instructions(seeky_dir);
+        let instructions = Self::load_instructions(Some(&seeky_home));
 
         // Destructure ConfigOverrides fully to ensure all overrides are applied.
         let ConfigOverrides {
@@ -216,6 +267,7 @@ impl Config {
             disable_response_storage,
             model_provider,
             config_profile: config_profile_key,
+            seeky_linux_sandbox_exe,
         } = overrides;
 
         let config_profile = match config_profile_key.or(cfg.profile) {
@@ -267,6 +319,8 @@ impl Config {
             })?
             .clone();
 
+        let shell_environment_policy = cfg.shell_environment_policy.into();
+
         let resolved_cwd = {
             use std::env;
 
@@ -286,6 +340,8 @@ impl Config {
             }
         };
 
+        let history = cfg.history.unwrap_or_default();
+
         let config = Self {
             model: model
                 .or(config_profile.model)
@@ -299,6 +355,7 @@ impl Config {
                 .or(cfg.approval_policy)
                 .unwrap_or_else(AskForApproval::default),
             sandbox_policy,
+            shell_environment_policy,
             disable_response_storage: disable_response_storage
                 .or(config_profile.disable_response_storage)
                 .or(cfg.disable_response_storage)
@@ -308,6 +365,11 @@ impl Config {
             mcp_servers: cfg.mcp_servers,
             model_providers,
             project_doc_max_bytes: cfg.project_doc_max_bytes.unwrap_or(PROJECT_DOC_MAX_BYTES),
+            seeky_home,
+            history,
+            file_opener: cfg.file_opener.unwrap_or(UriBasedFileOpener::VsCode),
+            tui: cfg.tui.unwrap_or_default(),
+            seeky_linux_sandbox_exe,
         };
         Ok(config)
     }
@@ -328,27 +390,29 @@ impl Config {
             }
         })
     }
-
-    /// Meant to be used exclusively for tests: `load_with_overrides()` should
-    /// be used in all other cases.
-    pub fn load_default_config_for_test() -> Self {
-        #[expect(clippy::expect_used)]
-        Self::load_from_base_config_with_overrides(
-            ConfigToml::default(),
-            ConfigOverrides::default(),
-            None,
-        )
-        .expect("defaults for test should always succeed")
-    }
 }
 
 fn default_model() -> String {
     OPENAI_DEFAULT_MODEL.to_string()
 }
 
-/// Returns the path to the Seeky configuration directory, which is `~/.seeky`.
-/// Does not verify that the directory exists.
-pub fn seeky_dir() -> std::io::Result<PathBuf> {
+/// Returns the path to the Seeky configuration directory, which can be
+/// specified by the `SEEKY_HOME` environment variable. If not set, defaults to
+/// `~/.seeky`.
+///
+/// - If `SEEKY_HOME` is set, the value will be canonicalized and this
+///   function will Err if the path does not exist.
+/// - If `SEEKY_HOME` is not set, this function does not verify that the
+///   directory exists.
+fn find_seeky_home() -> std::io::Result<PathBuf> {
+    // Honor the `SEEKY_HOME` environment variable when it is set to allow users
+    // (and tests) to override the default location.
+    if let Ok(val) = std::env::var("SEEKY_HOME") {
+        if !val.is_empty() {
+            return PathBuf::from(val).canonicalize();
+        }
+    }
+
     let mut p = home_dir().ok_or_else(|| {
         std::io::Error::new(
             std::io::ErrorKind::NotFound,
@@ -361,8 +425,8 @@ pub fn seeky_dir() -> std::io::Result<PathBuf> {
 
 /// Returns the path to the folder where Seeky logs are stored. Does not verify
 /// that the directory exists.
-pub fn log_dir() -> std::io::Result<PathBuf> {
-    let mut p = seeky_dir()?;
+pub fn log_dir(cfg: &Config) -> std::io::Result<PathBuf> {
+    let mut p = cfg.seeky_home.clone();
     p.push("log");
     Ok(p)
 }
@@ -414,6 +478,8 @@ pub fn parse_sandbox_permission_with_base_path(
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use crate::config_types::HistoryPersistence;
+
     use super::*;
     use pretty_assertions::assert_eq;
     use tempfile::TempDir;
@@ -454,6 +520,40 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_toml_parsing() {
+        let history_with_persistence = r#"
+[history]
+persistence = "save-all"
+"#;
+        let history_with_persistence_cfg: ConfigToml =
+            toml::from_str::<ConfigToml>(history_with_persistence)
+                .expect("TOML deserialization should succeed");
+        assert_eq!(
+            Some(History {
+                persistence: HistoryPersistence::SaveAll,
+                max_bytes: None,
+            }),
+            history_with_persistence_cfg.history
+        );
+
+        let history_no_persistence = r#"
+[history]
+persistence = "none"
+"#;
+
+        let history_no_persistence_cfg: ConfigToml =
+            toml::from_str::<ConfigToml>(history_no_persistence)
+                .expect("TOML deserialization should succeed");
+        assert_eq!(
+            Some(History {
+                persistence: HistoryPersistence::None,
+                max_bytes: None,
+            }),
+            history_no_persistence_cfg.history
+        );
+    }
+
     /// Deserializing a TOML string containing an *invalid* permission should
     /// fail with a helpful error rather than silently defaulting or
     /// succeeding.
@@ -470,20 +570,26 @@ mod tests {
         assert!(msg.contains("not-a-real-permission"));
     }
 
-    /// Users can specify config values at multiple levels that have the
-    /// following precedence:
-    ///
-    /// 1. custom command-line argument, e.g. `--model o3`
-    /// 2. as part of a profile, where the `--profile` is specified via a CLI
-    ///    (or in the config file itelf)
-    /// 3. as an entry in `config.toml`, e.g. `model = "o3"`
-    /// 4. the default value for a required field defined in code, e.g.,
-    ///    `crate::flags::OPENAI_DEFAULT_MODEL`
-    ///
-    /// Note that profiles are the recommended way to specify a group of
-    /// configuration options together.
-    #[test]
-    fn test_precedence_overrides_then_profile_then_config_toml() -> std::io::Result<()> {
+    struct PrecedenceTestFixture {
+        cwd: TempDir,
+        seeky_home: TempDir,
+        cfg: ConfigToml,
+        model_provider_map: HashMap<String, ModelProviderInfo>,
+        openai_provider: ModelProviderInfo,
+        openai_chat_completions_provider: ModelProviderInfo,
+    }
+
+    impl PrecedenceTestFixture {
+        fn cwd(&self) -> PathBuf {
+            self.cwd.path().to_path_buf()
+        }
+
+        fn seeky_home(&self) -> PathBuf {
+            self.seeky_home.path().to_path_buf()
+        }
+    }
+
+    fn create_test_fixture() -> std::io::Result<PrecedenceTestFixture> {
         let toml = r#"
 model = "o3"
 approval_policy = "unless-allow-listed"
@@ -526,6 +632,8 @@ disable_response_storage = true
         // a parent folder, either.
         std::fs::write(cwd.join(".git"), "gitdir: nowhere")?;
 
+        let seeky_home_temp_dir = TempDir::new().unwrap();
+
         let openai_chat_completions_provider = ModelProviderInfo {
             name: "OpenAI using Chat Completions".to_string(),
             base_url: "https://api.openai.com/v1".to_string(),
@@ -542,99 +650,163 @@ disable_response_storage = true
             model_provider_map
         };
 
-        let khulnasoft_provider = model_provider_map
+        let openai_provider = model_provider_map
             .get("openai")
             .expect("openai provider should exist")
             .clone();
 
+        Ok(PrecedenceTestFixture {
+            cwd: cwd_temp_dir,
+            seeky_home: seeky_home_temp_dir,
+            cfg,
+            model_provider_map,
+            openai_provider,
+            openai_chat_completions_provider,
+        })
+    }
+
+    /// Users can specify config values at multiple levels that have the
+    /// following precedence:
+    ///
+    /// 1. custom command-line argument, e.g. `--model o3`
+    /// 2. as part of a profile, where the `--profile` is specified via a CLI
+    ///    (or in the config file itelf)
+    /// 3. as an entry in `config.toml`, e.g. `model = "o3"`
+    /// 4. the default value for a required field defined in code, e.g.,
+    ///    `crate::flags::OPENAI_DEFAULT_MODEL`
+    ///
+    /// Note that profiles are the recommended way to specify a group of
+    /// configuration options together.
+    #[test]
+    fn test_precedence_fixture_with_o3_profile() -> std::io::Result<()> {
+        let fixture = create_test_fixture()?;
+
         let o3_profile_overrides = ConfigOverrides {
             config_profile: Some("o3".to_string()),
-            cwd: Some(cwd.clone()),
+            cwd: Some(fixture.cwd()),
             ..Default::default()
         };
-        let o3_profile_config =
-            Config::load_from_base_config_with_overrides(cfg.clone(), o3_profile_overrides, None)?;
+        let o3_profile_config: Config = Config::load_from_base_config_with_overrides(
+            fixture.cfg.clone(),
+            o3_profile_overrides,
+            fixture.seeky_home(),
+        )?;
         assert_eq!(
             Config {
                 model: "o3".to_string(),
                 model_provider_id: "openai".to_string(),
-                model_provider: khulnasoft_provider.clone(),
+                model_provider: fixture.openai_provider.clone(),
                 approval_policy: AskForApproval::Never,
                 sandbox_policy: SandboxPolicy::new_read_only_policy(),
+                shell_environment_policy: ShellEnvironmentPolicy::default(),
                 disable_response_storage: false,
                 instructions: None,
                 notify: None,
-                cwd: cwd.clone(),
+                cwd: fixture.cwd(),
                 mcp_servers: HashMap::new(),
-                model_providers: model_provider_map.clone(),
+                model_providers: fixture.model_provider_map.clone(),
                 project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+                seeky_home: fixture.seeky_home(),
+                history: History::default(),
+                file_opener: UriBasedFileOpener::VsCode,
+                tui: Tui::default(),
+                seeky_linux_sandbox_exe: None,
             },
             o3_profile_config
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_precedence_fixture_with_gpt3_profile() -> std::io::Result<()> {
+        let fixture = create_test_fixture()?;
 
         let gpt3_profile_overrides = ConfigOverrides {
             config_profile: Some("gpt3".to_string()),
-            cwd: Some(cwd.clone()),
+            cwd: Some(fixture.cwd()),
             ..Default::default()
         };
         let gpt3_profile_config = Config::load_from_base_config_with_overrides(
-            cfg.clone(),
+            fixture.cfg.clone(),
             gpt3_profile_overrides,
-            None,
+            fixture.seeky_home(),
         )?;
         let expected_gpt3_profile_config = Config {
             model: "gpt-3.5-turbo".to_string(),
             model_provider_id: "openai-chat-completions".to_string(),
-            model_provider: openai_chat_completions_provider,
+            model_provider: fixture.openai_chat_completions_provider.clone(),
             approval_policy: AskForApproval::UnlessAllowListed,
             sandbox_policy: SandboxPolicy::new_read_only_policy(),
+            shell_environment_policy: ShellEnvironmentPolicy::default(),
             disable_response_storage: false,
             instructions: None,
             notify: None,
-            cwd: cwd.clone(),
+            cwd: fixture.cwd(),
             mcp_servers: HashMap::new(),
-            model_providers: model_provider_map.clone(),
+            model_providers: fixture.model_provider_map.clone(),
             project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+            seeky_home: fixture.seeky_home(),
+            history: History::default(),
+            file_opener: UriBasedFileOpener::VsCode,
+            tui: Tui::default(),
+            seeky_linux_sandbox_exe: None,
         };
-        assert_eq!(expected_gpt3_profile_config.clone(), gpt3_profile_config);
+
+        assert_eq!(expected_gpt3_profile_config, gpt3_profile_config);
 
         // Verify that loading without specifying a profile in ConfigOverrides
-        // uses the default profile from the config file.
+        // uses the default profile from the config file (which is "gpt3").
         let default_profile_overrides = ConfigOverrides {
-            cwd: Some(cwd.clone()),
+            cwd: Some(fixture.cwd()),
             ..Default::default()
         };
+
         let default_profile_config = Config::load_from_base_config_with_overrides(
-            cfg.clone(),
+            fixture.cfg.clone(),
             default_profile_overrides,
-            None,
+            fixture.seeky_home(),
         )?;
+
         assert_eq!(expected_gpt3_profile_config, default_profile_config);
+        Ok(())
+    }
+
+    #[test]
+    fn test_precedence_fixture_with_zdr_profile() -> std::io::Result<()> {
+        let fixture = create_test_fixture()?;
 
         let zdr_profile_overrides = ConfigOverrides {
             config_profile: Some("zdr".to_string()),
-            cwd: Some(cwd.clone()),
+            cwd: Some(fixture.cwd()),
             ..Default::default()
         };
-        let zdr_profile_config =
-            Config::load_from_base_config_with_overrides(cfg.clone(), zdr_profile_overrides, None)?;
-        assert_eq!(
-            Config {
-                model: "o3".to_string(),
-                model_provider_id: "openai".to_string(),
-                model_provider: khulnasoft_provider.clone(),
-                approval_policy: AskForApproval::OnFailure,
-                sandbox_policy: SandboxPolicy::new_read_only_policy(),
-                disable_response_storage: true,
-                instructions: None,
-                notify: None,
-                cwd: cwd.clone(),
-                mcp_servers: HashMap::new(),
-                model_providers: model_provider_map.clone(),
-                project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
-            },
-            zdr_profile_config
-        );
+        let zdr_profile_config = Config::load_from_base_config_with_overrides(
+            fixture.cfg.clone(),
+            zdr_profile_overrides,
+            fixture.seeky_home(),
+        )?;
+        let expected_zdr_profile_config = Config {
+            model: "o3".to_string(),
+            model_provider_id: "openai".to_string(),
+            model_provider: fixture.openai_provider.clone(),
+            approval_policy: AskForApproval::OnFailure,
+            sandbox_policy: SandboxPolicy::new_read_only_policy(),
+            shell_environment_policy: ShellEnvironmentPolicy::default(),
+            disable_response_storage: true,
+            instructions: None,
+            notify: None,
+            cwd: fixture.cwd(),
+            mcp_servers: HashMap::new(),
+            model_providers: fixture.model_provider_map.clone(),
+            project_doc_max_bytes: PROJECT_DOC_MAX_BYTES,
+            seeky_home: fixture.seeky_home(),
+            history: History::default(),
+            file_opener: UriBasedFileOpener::VsCode,
+            tui: Tui::default(),
+            seeky_linux_sandbox_exe: None,
+        };
+
+        assert_eq!(expected_zdr_profile_config, zdr_profile_config);
 
         Ok(())
     }
