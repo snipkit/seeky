@@ -5,14 +5,10 @@ import MultilineTextEditor from "../src/components/chat/multiline-editor.js";
 import * as React from "react";
 import { describe, it, expect, vi } from "vitest";
 
-async function type(
-  stdin: NodeJS.WritableStream,
-  text: string,
-  flush: () => Promise<void>,
-) {
-  stdin.write(text);
-  await flush();
-}
+// Enable debug logging
+process.env['TEXTBUFFER_DEBUG'] = '1';
+
+
 
 describe("MultilineTextEditor – Ctrl+Enter submits", () => {
   it("calls onSubmit when CSI 13;5u is received", async () => {
@@ -26,11 +22,14 @@ describe("MultilineTextEditor – Ctrl+Enter submits", () => {
       }),
     );
 
+    // Initial render flush
     await flush();
 
-    await type(stdin, "hello", flush);
-    await type(stdin, "\u001B[13;5u", flush); // Ctrl+Enter (modifier 5 = Ctrl)
-
+    // Type "hello" followed immediately by Ctrl+Enter
+    stdin.write("hello");
+    stdin.write("[13;5u"); // Ctrl+Enter (modifier 5 = Ctrl)
+    
+    // Single flush after all input
     await flush();
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
