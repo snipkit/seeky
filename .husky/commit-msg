@@ -1,4 +1,5 @@
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+set -e
 
+echo "Validating commit message..."
 npx --no-install commitlint --edit "$1"

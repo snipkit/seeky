@@ -1,5 +1,5 @@
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+set -e
 
 echo "Running tests before push..."
 pnpm test
