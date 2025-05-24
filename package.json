@@ -12,14 +12,14 @@
     "lint:fix": "pnpm --filter seeky run lint:fix",
     "typecheck": "pnpm --filter seeky run typecheck",
     "changelog": "git-cliff --config cliff.toml --output CHANGELOG.ignore.md $LAST_RELEASE_TAG..HEAD",
-    "prepare": "husky",
+    "prepare": "husky && husky install",
     "husky:add": "husky add"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "git-cliff": "^2.8.0",
-    "husky": "^9.1.7",
+    "husky": "^8.0.0",
     "lint-staged": "^15.5.1",
     "prettier": "^3.5.3"
   },
