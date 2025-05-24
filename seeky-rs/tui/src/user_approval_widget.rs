@@ -8,8 +8,6 @@
 
 use std::path::PathBuf;
 
-use seeky_core::protocol::Op;
-use seeky_core::protocol::ReviewDecision;
 use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use ratatui::buffer::Buffer;
@@ -24,6 +22,8 @@ use ratatui::widgets::List;
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Widget;
 use ratatui::widgets::WidgetRef;
+use seeky_core::protocol::Op;
+use seeky_core::protocol::ReviewDecision;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 

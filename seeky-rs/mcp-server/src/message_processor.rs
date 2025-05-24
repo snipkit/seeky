@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use crate::seeky_tool_config::SeekyToolCallParam;
 use crate::seeky_tool_config::create_tool_for_seeky_tool_call_param;
 
-use seeky_core::config::Config as SeekyConfig;
 use mcp_types::CallToolRequestParams;
 use mcp_types::CallToolResult;
 use mcp_types::CallToolResultContent;
@@ -23,6 +22,7 @@ use mcp_types::RequestId;
 use mcp_types::ServerCapabilitiesTools;
 use mcp_types::ServerNotification;
 use mcp_types::TextContent;
+use seeky_core::config::Config as SeekyConfig;
 use serde_json::json;
 use tokio::sync::mpsc;
 use tokio::task;

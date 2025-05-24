@@ -2,8 +2,8 @@
 #![expect(clippy::unwrap_used, clippy::expect_used)]
 
 use seeky_core::config_types::ShellEnvironmentPolicy;
-use seeky_core::error::SeekyErr;
 use seeky_core::error::SandboxErr;
+use seeky_core::error::SeekyErr;
 use seeky_core::exec::ExecParams;
 use seeky_core::exec::SandboxType;
 use seeky_core::exec::process_exec_tool_call;

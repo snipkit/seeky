@@ -2,14 +2,6 @@
 //! Tokio task. Separated from `message_processor.rs` to keep that file small
 //! and to make future feature-growth easier to manage.
 
-use seeky_core::seeky_wrapper::init_seeky;
-use seeky_core::config::Config as SeekyConfig;
-use seeky_core::protocol::AgentMessageEvent;
-use seeky_core::protocol::Event;
-use seeky_core::protocol::EventMsg;
-use seeky_core::protocol::InputItem;
-use seeky_core::protocol::Op;
-use seeky_core::protocol::TaskCompleteEvent;
 use mcp_types::CallToolResult;
 use mcp_types::CallToolResultContent;
 use mcp_types::JSONRPC_VERSION;
@@ -17,6 +9,14 @@ use mcp_types::JSONRPCMessage;
 use mcp_types::JSONRPCResponse;
 use mcp_types::RequestId;
 use mcp_types::TextContent;
+use seeky_core::config::Config as SeekyConfig;
+use seeky_core::protocol::AgentMessageEvent;
+use seeky_core::protocol::Event;
+use seeky_core::protocol::EventMsg;
+use seeky_core::protocol::InputItem;
+use seeky_core::protocol::Op;
+use seeky_core::protocol::TaskCompleteEvent;
+use seeky_core::seeky_wrapper::init_seeky;
 use tokio::sync::mpsc::Sender;
 
 /// Convert a Seeky [`Event`] to an MCP notification.

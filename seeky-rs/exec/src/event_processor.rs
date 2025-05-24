@@ -1,4 +1,6 @@
 use chrono::Utc;
+use owo_colors::OwoColorize;
+use owo_colors::Style;
 use seeky_common::elapsed::format_elapsed;
 use seeky_core::config::Config;
 use seeky_core::protocol::AgentMessageEvent;
@@ -14,8 +16,6 @@ use seeky_core::protocol::McpToolCallEndEvent;
 use seeky_core::protocol::PatchApplyBeginEvent;
 use seeky_core::protocol::PatchApplyEndEvent;
 use seeky_core::protocol::SessionConfiguredEvent;
-use owo_colors::OwoColorize;
-use owo_colors::Style;
 use shlex::try_join;
 use std::collections::HashMap;
 use std::time::Instant;

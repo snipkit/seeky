@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::path::PathBuf;
 
-use seeky_core::error::SeekyErr;
 use seeky_core::error::Result;
 use seeky_core::error::SandboxErr;
+use seeky_core::error::SeekyErr;
 use seeky_core::protocol::SandboxPolicy;
 
 use landlock::ABI;

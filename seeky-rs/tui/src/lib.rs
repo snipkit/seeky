@@ -3,12 +3,12 @@
 // alternate‑screen mode starts; that file opts‑out locally via `allow`.
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 use app::App;
+use log_layer::TuiLogLayer;
 use seeky_core::config::Config;
 use seeky_core::config::ConfigOverrides;
 use seeky_core::protocol::AskForApproval;
 use seeky_core::protocol::SandboxPolicy;
 use seeky_core::util::is_inside_git_repo;
-use log_layer::TuiLogLayer;
 use std::fs::OpenOptions;
 use std::path::PathBuf;
 use tracing_appender::non_blocking;

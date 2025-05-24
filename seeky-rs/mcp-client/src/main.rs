@@ -14,12 +14,12 @@ use std::time::Duration;
 
 use anyhow::Context;
 use anyhow::Result;
-use seeky_mcp_client::McpClient;
 use mcp_types::ClientCapabilities;
 use mcp_types::Implementation;
 use mcp_types::InitializeRequestParams;
 use mcp_types::ListToolsRequestParams;
 use mcp_types::MCP_SCHEMA_VERSION;
+use seeky_mcp_client::McpClient;
 
 #[tokio::main]
 async fn main() -> Result<()> {

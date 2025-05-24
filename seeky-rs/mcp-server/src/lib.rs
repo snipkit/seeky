@@ -14,9 +14,9 @@ use tracing::debug;
 use tracing::error;
 use tracing::info;
 
+mod message_processor;
 mod seeky_tool_config;
 mod seeky_tool_runner;
-mod message_processor;
 
 use crate::message_processor::MessageProcessor;
 

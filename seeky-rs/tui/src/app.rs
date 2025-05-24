@@ -7,14 +7,14 @@ use crate::mouse_capture::MouseCapture;
 use crate::scroll_event_helper::ScrollEventHelper;
 use crate::slash_command::SlashCommand;
 use crate::tui;
-use seeky_core::config::Config;
-use seeky_core::protocol::Event;
-use seeky_core::protocol::Op;
 use color_eyre::eyre::Result;
 use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use crossterm::event::MouseEvent;
 use crossterm::event::MouseEventKind;
+use seeky_core::config::Config;
+use seeky_core::protocol::Event;
+use seeky_core::protocol::Op;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::channel;
 

@@ -2,13 +2,13 @@ use std::time::Duration;
 
 use tracing::error;
 
-use crate::seeky::Session;
 use crate::models::FunctionCallOutputPayload;
 use crate::models::ResponseInputItem;
 use crate::protocol::Event;
 use crate::protocol::EventMsg;
 use crate::protocol::McpToolCallBeginEvent;
 use crate::protocol::McpToolCallEndEvent;
+use crate::seeky::Session;
 
 /// Handles the specified tool call dispatches the appropriate
 /// `McpToolCallBegin` and `McpToolCallEnd` events to the `Session`.

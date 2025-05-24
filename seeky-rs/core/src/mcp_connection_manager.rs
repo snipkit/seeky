@@ -12,10 +12,10 @@ use std::time::Duration;
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
-use seeky_mcp_client::McpClient;
 use mcp_types::ClientCapabilities;
 use mcp_types::Implementation;
 use mcp_types::Tool;
+use seeky_mcp_client::McpClient;
 use tokio::task::JoinSet;
 use tracing::info;
 

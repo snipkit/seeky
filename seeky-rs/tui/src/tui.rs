@@ -2,7 +2,6 @@ use std::io::Result;
 use std::io::Stdout;
 use std::io::stdout;
 
-use seeky_core::config::Config;
 use crossterm::event::DisableBracketedPaste;
 use crossterm::event::DisableMouseCapture;
 use crossterm::event::EnableBracketedPaste;
@@ -13,6 +12,7 @@ use ratatui::crossterm::terminal::EnterAlternateScreen;
 use ratatui::crossterm::terminal::LeaveAlternateScreen;
 use ratatui::crossterm::terminal::disable_raw_mode;
 use ratatui::crossterm::terminal::enable_raw_mode;
+use seeky_core::config::Config;
 
 use crate::mouse_capture::MouseCapture;
 

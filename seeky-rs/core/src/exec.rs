@@ -18,9 +18,9 @@ use tokio::process::Child;
 use tokio::process::Command;
 use tokio::sync::Notify;
 
-use crate::error::SeekyErr;
 use crate::error::Result;
 use crate::error::SandboxErr;
+use crate::error::SeekyErr;
 use crate::protocol::SandboxPolicy;
 
 // Maximum we send for each stream, which is either:

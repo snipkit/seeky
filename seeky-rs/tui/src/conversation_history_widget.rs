@@ -1,14 +1,14 @@
 use crate::history_cell::CommandOutput;
 use crate::history_cell::HistoryCell;
 use crate::history_cell::PatchEventType;
-use seeky_core::config::Config;
-use seeky_core::protocol::FileChange;
-use seeky_core::protocol::SessionConfiguredEvent;
 use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use ratatui::prelude::*;
 use ratatui::style::Style;
 use ratatui::widgets::*;
+use seeky_core::config::Config;
+use seeky_core::protocol::FileChange;
+use seeky_core::protocol::SessionConfiguredEvent;
 use serde_json::Value as JsonValue;
 use std::cell::Cell as StdCell;
 use std::cell::Cell;

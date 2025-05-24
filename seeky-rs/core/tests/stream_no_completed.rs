@@ -3,8 +3,8 @@
 
 use std::time::Duration;
 
-use seeky_core::Seeky;
 use seeky_core::ModelProviderInfo;
+use seeky_core::Seeky;
 use seeky_core::exec::SEEKY_SANDBOX_NETWORK_DISABLED_ENV_VAR;
 use seeky_core::protocol::EventMsg;
 use seeky_core::protocol::InputItem;
