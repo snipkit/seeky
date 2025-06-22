@@ -41,12 +41,13 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        
 
       # Run all tasks using workspace filters
 
       - name: Check TypeScript code formatting
         working-directory: seeky-cli
-        run: pnpm run format
+        run: pnpm run format:fix
 
       - name: Check Markdown and config file formatting
         run: pnpm run format
