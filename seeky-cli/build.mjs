@@ -1,6 +1,22 @@
-import * as esbuild from "esbuild";
 import * as fs from "fs";
+import * as esbuild from "esbuild";
 import * as path from "path";
+
+// ----- Artifact checks -----
+const requiredArtifacts = [
+  "src/cli.tsx",
+  "tsconfig.json",
+  "./require-shim.js",
+  // Add other required files as needed
+];
+
+for (const artifact of requiredArtifacts) {
+  if (!fs.existsSync(artifact)) {
+    console.error(`Required artifact missing: ${artifact}`);
+    process.exit(1);
+  }
+}
+// ---------------------------
 
 const OUT_DIR = 'dist'
 /**
