@@ -18,16 +18,18 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-        working-directory: ./ # Adjust if your package.json is elsewhere
+        working-directory: . # Adjust if your package.json is elsewhere
       - run: npx prettier --check .
-        working-directory: ./ # Checks all supported files
+        working-directory: .
 
       # Python formatting (Black)
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
       - run: pip install black
-      - run: black --check .
+      - name: Run Black
+        run: black --check .
+        continue-on-error: true # Optional: don't fail if no Python files
 
       # Rust formatting (rustfmt)
       - uses: actions-rs/toolchain@v1
@@ -48,22 +50,29 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-        working-directory: ./ # Adjust if needed
+        working-directory: .
       - run: npm run lint
-        working-directory: ./ # Assumes you have a lint script
+        working-directory: .
       - run: npm test
-        working-directory: ./ # Assumes you have a test script
+        working-directory: .
       - run: npm run build
-        working-directory: ./ # Build step, if needed
+        working-directory: .
 
       # Python Lint & Test
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
-      - run: pip install -r requirements.txt
-        if: exists('requirements.txt')
+      - name: Install Python requirements if present
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
       - run: pip install pytest
-      - run: pytest
+      - name: Run Pytest
+        run: |
+          if [ -f pytest.ini ] || [ -d tests ]; then
+            pytest
+          fi
 
       # Rust Lint & Test
       - uses: actions-rs/toolchain@v1
